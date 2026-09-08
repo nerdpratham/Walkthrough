@@ -1,0 +1,18 @@
+{
+  "default": true,
+
+  // Allow up to 2 consecutive blank lines (useful in spec/doc files)
+  "MD012": { "maximum": 2 },
+
+  // Don't require blank lines around every heading — too strict for dense docs
+  "MD022": false,
+
+  // Don't require blank lines around lists — clutters tightly formatted specs
+  "MD032": false,
+
+  // Don't require files to start with an h1 — frontmatter and titled specs are fine
+  "MD041": false,
+
+  // Disable line length limit — too strict for tables, code blocks, and spec prose
+  "MD013": false
+}

@@ -1,0 +1,17 @@
+.superpowers/
+.playwright-mcp/
+.claude/
+node_modules/
+.next/
+out/
+dist/
+.env*.local
+*.log
+public/tours/*/panoramas/
+public/tours/*/markers/
+public/tours/*/tour.config.json
+*.tsbuildinfo
+deliverables/
+.tmp-*
+*.tar
+*.zip

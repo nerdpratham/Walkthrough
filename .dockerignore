@@ -1,0 +1,39 @@
+# Dependencies and build output — rebuilt inside the image
+node_modules
+.next
+out
+build
+
+# Version control and editors
+.git
+.gitignore
+.gitattributes
+.vscode
+.idea
+.DS_Store
+
+# Agent/worktree scratch — large, never needed in the image
+.claude
+
+# Secrets and local env — must NEVER be baked into the image
+.env
+.env.*
+
+# Tour data — every tour's config.json AND panoramas come from the bind
+# mount at runtime, so none of it belongs in the image
+public/tours
+
+# Docs, planning, CI — not needed to build or run the app
+docs
+.github
+*.md
+
+# Dev-only Node scripts (panorama optimization)
+scripts
+
+# Test tooling — not needed in the production image
+__mocks__
+jest.config.ts
+jest.setup.ts
+**/*.test.ts
+**/*.test.tsx

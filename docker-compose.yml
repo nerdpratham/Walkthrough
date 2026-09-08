@@ -1,0 +1,15 @@
+services:
+  app:
+    image: ${APP_IMAGE:-360walkthrough:latest}
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - TOURS_DATA_DIR=/data/tours
+      - STUDIO_PASSWORD=${STUDIO_PASSWORD}
+      - STUDIO_SECRET=${STUDIO_SECRET}
+    volumes:
+      - type: bind
+        source: /var/360walkthrough/tours
+        target: /data/tours
+    ports:
+      - "127.0.0.1:3000:3000"

@@ -1,0 +1,316 @@
+@import "tailwindcss";
+
+:root {
+  --tour-bg:              #0C0C0E;
+  --tour-surface:         rgba(14, 14, 18, 0.84);
+  --tour-border:          rgba(255, 255, 255, 0.09);
+  --tour-text:            #F5F4F0;
+  --tour-text-muted:      rgba(245, 244, 240, 0.42);
+  --tour-accent:          #7c83fd;
+  --tour-overlay-opacity: 0.88;
+  --tour-ui-density:      default;
+  --tour-logo-position:   bottom-left;
+}
+
+body {
+  font-family: var(--font-ui, Arial, sans-serif);
+}
+
+/* PSV container must have explicit dimensions */
+.psv-container {
+  width: 100%;
+  height: 100%;
+}
+
+.tour-viewer-prestart [class*="psv-loader"] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* PSV virtual tour hotspot arrows */
+.psv-virtual-tour-link {
+  cursor: pointer !important;
+  opacity: 0; /* JS sets opacity once yaw is known */
+  transition: opacity 0.2s ease;
+}
+
+.site-tour-arrow {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 999px !important;
+  background:
+    radial-gradient(circle at 50% 54%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.04) 58%, transparent 60%),
+    rgba(4, 8, 12, 0.42) !important;
+  border: 1px solid rgba(255, 255, 255, 0.46) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(0, 0, 0, 0.18) !important;
+  backdrop-filter: blur(3px);
+  position: relative;
+}
+
+.site-tour-arrow::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 15px;
+  height: 15px;
+  border-left: 3px solid rgba(255, 255, 255, 0.9);
+  border-top: 3px solid rgba(255, 255, 255, 0.9);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.psv-virtual-tour-link:hover .site-tour-arrow {
+  border-color: rgba(255, 255, 255, 0.72) !important;
+  background:
+    radial-gradient(circle at 50% 54%, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.06) 58%, transparent 60%),
+    rgba(4, 8, 12, 0.52) !important;
+}
+
+.studio-tour-arrow {
+  outline: 2px solid rgba(34, 211, 238, 0.7) !important;
+  outline-offset: 0;
+}
+
+.site-tour-dot {
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  border: 10px solid rgba(210, 210, 210, 0.55) !important;
+  box-shadow: none !important;
+  transform: perspective(400px) rotateX(55deg);
+  transition: border-color 0.15s ease !important;
+}
+
+.psv-virtual-tour-link:hover .site-tour-dot {
+  border-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.studio-tour-dot {
+  outline: 1px solid rgba(34, 211, 238, 0.55) !important;
+  outline-offset: 5px;
+}
+
+/* Studio — arrival direction ghost markers (Incoming tab) */
+.arrival-ghost {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 2px dashed rgba(34, 211, 238, 0.5);
+  background: rgba(34, 211, 238, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  position: relative;
+}
+
+.arrival-ghost::after {
+  content: attr(data-from);
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: rgba(34, 211, 238, 0.7);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Info marker "i" button (public + studio) */
+.info-marker-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(20, 28, 40, 0.82);
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 700;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+  backdrop-filter: blur(4px);
+}
+
+.psv-marker:hover .info-marker-btn {
+  background: rgba(30, 42, 58, 0.95);
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+/* Info marker with persistent label (showLabel: true) */
+.info-marker-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.info-marker-lbl {
+  display: inline-block;
+  width: max-content;
+  text-align: center;
+  background: rgba(8, 10, 14, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding: 3px 9px 4px;
+  white-space: nowrap;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  user-select: none;
+  pointer-events: none;
+}
+
+.psv-marker:hover .info-marker-lbl {
+  color: rgba(255, 255, 255, 0.98);
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(14, 18, 26, 0.92);
+}
+
+/* Studio: amber outline distinguishes info markers from nav hotspots */
+.studio-viewer .info-marker-btn {
+  outline: 1px solid rgba(251, 191, 36, 0.65);
+  outline-offset: 3px;
+}
+
+/* ── Start Screen ───────────────────────────────────────────────────────── */
+
+@keyframes start-reveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Deep navy field with blue glow bleeding from the top and bottom edges */
+.start-screen-bg {
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(74, 108, 204, 0.42), transparent 60%),
+    radial-gradient(ellipse 110% 70% at 50% 108%, rgba(58, 90, 190, 0.46), transparent 66%),
+    radial-gradient(ellipse 130% 130% at 50% 50%, #0b1226 0%, #05070f 72%),
+    #05070f;
+}
+
+.start-screen-logo {
+  height: clamp(52px, 8vw, 88px);
+  animation: start-reveal 0.7s ease 0.15s both;
+}
+
+.start-screen-wordmark {
+  font-family: var(--font-ui, sans-serif);
+  font-size: clamp(34px, 6vw, 60px);
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--tour-text, #F5F4F0);
+  margin: 0;
+  padding-left: 0.24em;
+  animation: start-reveal 0.7s ease 0.15s both;
+}
+
+.start-screen-lede {
+  max-width: 30rem;
+  margin: 2rem 0 0;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 16px;
+  line-height: 1.55;
+  color: rgba(245, 244, 240, 0.72);
+  animation: start-reveal 0.6s ease 0.3s both;
+}
+
+.start-screen-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 2.5rem;
+  animation: start-reveal 0.6s ease 0.45s both;
+}
+
+.sx-btn {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0.4rem;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sx-btn-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 11.5rem;
+  padding: 0.7rem 1rem;
+  border-radius: 6px;
+  transition: filter 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.sx-btn-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  border-radius: 6px;
+  font-size: 15px;
+  transition: filter 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.sx-btn-primary .sx-btn-label,
+.sx-btn-primary .sx-btn-arrow {
+  background: #f5f4f0;
+  color: #0a0d16;
+}
+
+.sx-btn-primary:hover .sx-btn-label,
+.sx-btn-primary:hover .sx-btn-arrow {
+  filter: brightness(0.92);
+}
+
+.sx-btn-secondary .sx-btn-label,
+.sx-btn-secondary .sx-btn-arrow {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--tour-text, #f5f4f0);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.sx-btn-secondary:hover .sx-btn-label,
+.sx-btn-secondary:hover .sx-btn-arrow {
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.start-screen-footer {
+  position: absolute;
+  bottom: 1.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--tour-text-muted, rgba(245, 244, 240, 0.42));
+  animation: start-reveal 0.6s ease 0.6s both;
+}
+
+/* ── Scene Banner ───────────────────────────────────────────────────────── */
+
+@keyframes scene-banner-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.scene-banner {
+  animation: scene-banner-in 0.4s ease both;
+}
