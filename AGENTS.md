@@ -7,6 +7,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ---
 
+## Agent Behavior
+
+Do not act on items in `TODO.md`, or on anything else discussed/planned in
+conversation, until explicitly told to do so. Discussing or listing work is
+not authorization to start it.
+
+---
+
 ## What This Is
 
 A self-hosted virtual walkthrough system built from 360° panoramas. Matterport-quality free navigation — every capture point has hotspots in all visible directions, direction-aware arrival, smooth zoom+crossfade transitions.
