@@ -8,15 +8,21 @@ architecture that isn't needed yet.
 
 ## 1. Tour data loading (target: ~1000 scenes per tour)
 
-- [ ] Confirm gzip/brotli compression is actually enabled wherever this
-      deploys (Caddy/nginx). At ~1000 scenes the full `tour.config.json` is
-      roughly 600KB-900KB raw; gzip should bring that down to somewhere
-      around 100-150KB, which is a perfectly normal one-time payload — no
-      architecture change needed for this target.
-- [ ] Cache the parsed/validated config server-side in `lib/tour-config.ts`
-      (in-memory, invalidated on Studio save) instead of re-reading and
-      re-validating from disk on every request. Simple, and covers the real
-      repeat-request cost at this scale.
+- [x] Confirm gzip/brotli compression is enabled. Verified against a real
+      production build (`npm run build` + standalone `server.js`): the
+      `/tours/[slug]` HTML response (how config actually reaches the
+      client, via the RSC payload) comes back `Content-Encoding: gzip`.
+      Next's built-in compression handles this by default — no config
+      change was needed.
+- [x] Cache the parsed/validated config server-side. `lib/tour-config.ts`
+      now holds a 10s TTL in-memory cache keyed by slug. The three places
+      that write `tour.config.json` (`app/api/studio/tours/[slug]/config`'s
+      PUT, and `renameTour`/`deleteTour` in `lib/studio/tours.ts`) call
+      `invalidateTourConfig(slug)` so saves show up immediately rather than
+      waiting out the TTL — `renameTour` also invalidates *before* its read
+      since it's a read-modify-write and a stale cached read there could
+      silently clobber a very recent save. Covered by new tests in
+      `lib/tour-config.test.ts`.
 - [x] Per-scene deep links (`?scene=`) — done, zero extra cost at any scale
       since it's pure client-side.
 

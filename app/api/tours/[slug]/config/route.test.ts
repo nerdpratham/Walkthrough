@@ -3,12 +3,14 @@
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
+import { clearTourConfigCache } from '@/lib/tour-config';
 import { GET } from './route';
 
 const prev = process.env.TOURS_DATA_DIR;
 let dir: string;
 
 beforeEach(async () => {
+  clearTourConfigCache();
   dir = await fs.mkdtemp(path.join(os.tmpdir(), 'tour-cfg-'));
   process.env.TOURS_DATA_DIR = dir;
   const tour = path.join(dir, 'demo');

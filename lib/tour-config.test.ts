@@ -1,5 +1,5 @@
 import fs from 'fs/promises';
-import { loadTourConfig } from '@/lib/tour-config';
+import { loadTourConfig, invalidateTourConfig, clearTourConfigCache } from '@/lib/tour-config';
 
 jest.mock('fs/promises');
 
@@ -10,6 +10,7 @@ const mockConfig = {
 };
 
 beforeEach(() => {
+  clearTourConfigCache();
   (fs.readFile as jest.Mock).mockResolvedValue(JSON.stringify(mockConfig));
 });
 
@@ -22,4 +23,26 @@ test('loads and parses valid config', async () => {
 test('throws on invalid config', async () => {
   (fs.readFile as jest.Mock).mockResolvedValue(JSON.stringify({ invalid: true }));
   await expect(loadTourConfig('test-tour')).rejects.toThrow();
+});
+
+test('caches a config so a second load skips the disk read', async () => {
+  const before = (fs.readFile as jest.Mock).mock.calls.length;
+  await loadTourConfig('cache-test-tour');
+  await loadTourConfig('cache-test-tour');
+  expect((fs.readFile as jest.Mock).mock.calls.length - before).toBe(1);
+});
+
+test('invalidateTourConfig forces the next load to hit disk again', async () => {
+  const before = (fs.readFile as jest.Mock).mock.calls.length;
+  await loadTourConfig('invalidate-test-tour');
+  invalidateTourConfig('invalidate-test-tour');
+  await loadTourConfig('invalidate-test-tour');
+  expect((fs.readFile as jest.Mock).mock.calls.length - before).toBe(2);
+});
+
+test('caches each slug independently', async () => {
+  const before = (fs.readFile as jest.Mock).mock.calls.length;
+  await loadTourConfig('independent-tour-a');
+  await loadTourConfig('independent-tour-b');
+  expect((fs.readFile as jest.Mock).mock.calls.length - before).toBe(2);
 });

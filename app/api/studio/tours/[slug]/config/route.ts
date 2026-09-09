@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { revalidatePath } from 'next/cache';
 import { TourConfigSchema } from '@/lib/types';
-import { toursDir } from '@/lib/tour-config';
+import { toursDir, invalidateTourConfig } from '@/lib/tour-config';
 
 interface Params {
   params: Promise<{ slug: string }>;
@@ -19,6 +19,7 @@ export async function PUT(request: Request, { params }: Params) {
   // Create the folder on first save — brand-new tours have nothing on disk yet.
   await fs.mkdir(tourDir, { recursive: true });
   await fs.writeFile(path.join(tourDir, 'tour.config.json'), `${JSON.stringify(config, null, 2)}\n`, 'utf-8');
+  invalidateTourConfig(slug);
   revalidatePath(`/tours/${slug}`);
   return Response.json({ ok: true, config });
 }

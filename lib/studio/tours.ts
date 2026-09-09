@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { TourConfigSchema } from '@/lib/types';
-import { toursDir, loadTourConfig } from '@/lib/tour-config';
+import { toursDir, loadTourConfig, invalidateTourConfig } from '@/lib/tour-config';
 
 export interface TourSummary {
   slug: string;
@@ -55,6 +55,7 @@ export async function deleteTour(slug: string): Promise<void> {
     throw new Error(`Invalid tour slug: ${slug}`);
   }
   await fs.rm(path.join(toursDir(), slug), { recursive: true, force: true });
+  invalidateTourConfig(slug);
 }
 
 /**
@@ -65,6 +66,10 @@ export async function renameTour(slug: string, title: string): Promise<void> {
   if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
     throw new Error(`Invalid tour slug: ${slug}`);
   }
+  // Force a fresh disk read before mutating — a cached copy here could be
+  // stale relative to a very recent Studio save, and writing it back would
+  // silently clobber that save.
+  invalidateTourConfig(slug);
   const config = await loadTourConfig(slug);
   config.meta.title = title;
   await fs.writeFile(
@@ -72,4 +77,5 @@ export async function renameTour(slug: string, title: string): Promise<void> {
     `${JSON.stringify(config, null, 2)}\n`,
     'utf-8',
   );
+  invalidateTourConfig(slug);
 }
