@@ -1,22 +1,31 @@
 # Scaling To-Do
 
-Ordered by what actually gates scale in this codebase. Most items are "know where
-the ceiling is," not "build now" — tackle each once you're actually hitting the
-wall it addresses.
+Target: comfortably handle **~1000 scenes** in a single tour, with as little
+added complexity as possible. Most items are "know where the ceiling is," not
+"build now" — tackle each once you're actually hitting the wall it addresses.
+Prefer the simplest fix that clears the 1000-scene bar over a more "correct"
+architecture that isn't needed yet.
 
-## 1. Tour data loading (biggest lever for "thousands of scenes")
+## 1. Tour data loading (target: ~1000 scenes per tour)
 
-- [ ] Split `tour.config.json` or lazy-load scene data. The entire scene graph
-      (links, markers, floor-plan markers) currently ships as one JSON blob on
-      first load and gets fully parsed into `VirtualTourPlugin` nodes upfront
-      (`psv-adapter.ts` -> `vt.setNodes`). Fine at hundreds of scenes; worth
-      splitting into per-scene fetch or a lighter index + on-demand detail past
-      ~1-2k scenes.
-- [ ] Confirm gzip/brotli is actually enabled wherever this deploys
-      (Caddy/nginx). JSON compresses 5-10x — may buy a lot of headroom before
-      any code change is needed.
+- [ ] Confirm gzip/brotli compression is actually enabled wherever this
+      deploys (Caddy/nginx). At ~1000 scenes the full `tour.config.json` is
+      roughly 600KB-900KB raw; gzip should bring that down to somewhere
+      around 100-150KB, which is a perfectly normal one-time payload — no
+      architecture change needed for this target.
+- [ ] Cache the parsed/validated config server-side in `lib/tour-config.ts`
+      (in-memory, invalidated on Studio save) instead of re-reading and
+      re-validating from disk on every request. Simple, and covers the real
+      repeat-request cost at this scale.
 - [x] Per-scene deep links (`?scene=`) — done, zero extra cost at any scale
       since it's pure client-side.
+
+**Deliberately not doing (for now):** splitting `tour.config.json` or
+switching PSV's virtual-tour-plugin to lazy `server` dataMode. That's real
+added complexity — a new data-generation step, cache invalidation, a second
+code path to test and maintain — that only pays for itself well past 1000
+scenes. Revisit only if a real tour actually grows meaningfully larger than
+that.
 
 ## 2. Asset delivery
 
@@ -30,14 +39,12 @@ wall it addresses.
 
 ## 3. Studio editing UX at scale
 
-- [ ] Scene navigator / floor-plan marker list / link inspector are plain
-      unvirtualized lists (`SceneNavigator.tsx`, `FloorPlanInspector.tsx`,
-      etc.). A tour with a few thousand scenes will make these sluggish in the
-      DOM well before the viewer itself struggles — virtualize
-      (react-window or similar) if/when someone builds a tour that big.
-- [ ] `editor-state.ts` keeps the full config + undo history in memory
-      client-side — check whether undo history needs a cap for very large
-      configs.
+- [ ] If the scene navigator (`SceneNavigator.tsx`) actually feels sluggish at
+      ~1000 scenes, virtualize just that one list (react-window or similar).
+      A narrow, contained fix — not a rewrite of the editor, and not worth
+      doing preemptively before it's actually felt.
+- [ ] `editor-state.ts` keeps the full config + undo history in memory —
+      fine at this scale, no action needed.
 
 ## 4. Infra / deployment
 
@@ -45,10 +52,6 @@ wall it addresses.
       (`docker-compose.yml`) — no horizontal scaling story today. Needed once
       past one server: shared/networked storage for tour data, multiple app
       replicas behind Caddy.
-- [ ] No caching in front of `/tours/[slug]` — `lib/tour-config.ts` re-reads
-      and re-validates the JSON from disk on every request. Cheap fix
-      (in-memory cache with invalidation on Studio save) before reaching for
-      anything heavier.
 - [ ] Viewer-only per-tour Docker builds are a fully manual local process. If
       "export a deployable per tour" becomes a recurring product feature
       rather than a one-off, move it into CI, not a dev machine.
