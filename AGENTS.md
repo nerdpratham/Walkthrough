@@ -13,6 +13,12 @@ Do not act on items in `TODO.md`, or on anything else discussed/planned in
 conversation, until explicitly told to do so. Discussing or listing work is
 not authorization to start it.
 
+Read `CHANGELOG.md` at the start of a session for what changed recently and
+why — it's kept current so a fresh session doesn't need the prior
+conversation replayed. When you make a change worth knowing about later
+(not a typo fix), add an entry: what changed, and its impact — not a
+mechanical file list. Keep entries newest-first.
+
 ---
 
 ## What This Is
