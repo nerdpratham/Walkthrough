@@ -48,6 +48,7 @@ export function TourViewer({
   const initialSceneIdRef = useRef(initialSceneId);
   const onHoverInfoMarkerRef = useRef(onHoverInfoMarker);
   const onOpenInfoMarkerRef = useRef(onOpenInfoMarker);
+  const onSceneChangeRef = useRef(onSceneChange);
 
   const goBack = useCallback(() => {
     if (historyRef.current.length < 2 || !vtRef.current) return;
@@ -58,6 +59,7 @@ export function TourViewer({
 
   useEffect(() => { onHoverInfoMarkerRef.current = onHoverInfoMarker; }, [onHoverInfoMarker]);
   useEffect(() => { onOpenInfoMarkerRef.current = onOpenInfoMarker; }, [onOpenInfoMarker]);
+  useEffect(() => { onSceneChangeRef.current = onSceneChange; }, [onSceneChange]);
 
   useEffect(() => {
     registerGoBack(goBack);
@@ -363,7 +365,7 @@ export function TourViewer({
 
         const last = historyRef.current[historyRef.current.length - 1];
         if (last !== node.id) historyRef.current.push(node.id);
-        onSceneChange(node.id, node.data?.zone ?? '');
+        onSceneChangeRef.current(node.id, node.data?.zone ?? '');
         onBackReady(historyRef.current.length > 1);
 
         if (pendingWalkInRef.current !== null) {
@@ -387,7 +389,16 @@ export function TourViewer({
       viewerRef.current = null;
       vtRef.current = null;
     };
-  }, [config, onSceneChange, onTransitionStart, onTransitionEnd, onBackReady, registerSelectScene]);
+    // `config` is intentionally not a dependency: nothing in this app mutates
+    // it during an active viewing session (Studio's live preview uses its own
+    // separate component, not this one), and a navigation to a different tour
+    // changes the route and remounts this component naturally. Reacting to
+    // `config` by reference here previously caused the whole viewer — a
+    // WebGL context — to be torn down and rebuilt on every re-render whenever
+    // anything upstream hands down a structurally-equal-but-new config
+    // object, producing a visible flicker on load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onTransitionStart, onTransitionEnd, onBackReady, registerSelectScene]);
 
   return (
     <div

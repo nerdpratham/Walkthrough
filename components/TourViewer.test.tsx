@@ -146,3 +146,46 @@ test('marks the viewer as pre-start while it initializes behind the start screen
 
   expect(container.firstElementChild).not.toHaveClass('tour-viewer-prestart');
 });
+
+test('does not tear down and recreate the viewer when onSceneChange identity changes', async () => {
+  const { rerender } = render(
+    <TourViewer
+      config={config}
+      initialSceneId="scene1"
+      onSceneChange={() => {}}
+      onTransitionStart={noop}
+      onTransitionEnd={noop}
+      onBackReady={noop}
+      registerGoBack={noop}
+      registerSelectScene={noop}
+      isStarted={false}
+      onHoverInfoMarker={noop}
+      onOpenInfoMarker={noop}
+    />
+  );
+
+  await waitFor(() => expect(mockViewerConstructor).toHaveBeenCalledTimes(1));
+
+  // A fresh onSceneChange function on every render (e.g. a useCallback whose
+  // own deps changed, as happens when it calls router.replace) must not
+  // re-trigger the expensive viewer setup — that was the cause of an
+  // infinite destroy/recreate loop and visible flicker on first load.
+  rerender(
+    <TourViewer
+      config={config}
+      initialSceneId="scene1"
+      onSceneChange={() => {}}
+      onTransitionStart={noop}
+      onTransitionEnd={noop}
+      onBackReady={noop}
+      registerGoBack={noop}
+      registerSelectScene={noop}
+      isStarted={false}
+      onHoverInfoMarker={noop}
+      onOpenInfoMarker={noop}
+    />
+  );
+
+  expect(mockViewerConstructor).toHaveBeenCalledTimes(1);
+  expect(mockViewer.destroy).not.toHaveBeenCalled();
+});

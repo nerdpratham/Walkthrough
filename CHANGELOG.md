@@ -5,6 +5,49 @@ compacted context) can catch up by reading this file instead of needing
 the full conversation history replayed. Newest first. See `git log` for
 exact diffs — this file explains *why it matters*, which a diff doesn't.
 
+## 2026-10-15 — Fixed: opening-scene flicker (infinite viewer remount loop)
+
+**What**: `components/TourViewer.tsx`'s main mount effect listed `config`
+and `onSceneChange` as dependencies. `onSceneChange` (`handleSceneChange`
+in `TourShell.tsx`) gets a new identity on every call because it depends
+on `router`/`pathname` and calls `router.replace` as part of the
+2026-09 scene-deep-linking work — and separately, `config` was also
+arriving with a fresh reference on every re-render in the static-export
+build. Either one alone was enough to re-run the effect, which tears
+down and reconstructs the entire PSV viewer (a WebGL context). Together
+they fed back into each other: the viewer's own first `node-changed`
+event changes the URL, which changes the dependency, which destroys and
+rebuilds the viewer, which fires `node-changed` again — an infinite loop,
+confirmed via instrumented tracing against the actual Docker image
+(dozens of destroy/recreate cycles per second from page load, well
+before any user interaction). Browsers cap simultaneous WebGL contexts;
+once the loop blew past that, the viewer got stuck showing PSV's native
+"Loading…" screen instead of the panorama — this is what the client saw
+as flickering.
+
+**Fix**: `onSceneChange` is now read through a ref
+(`onSceneChangeRef`), matching the existing pattern already used for
+`onHoverInfoMarker`/`onOpenInfoMarker` in the same file. `config` is now
+deliberately *not* a dependency of this effect — nothing in the app
+mutates it during an active viewing session (Studio's live preview uses
+a separate component, not this one), and a real navigation to a
+different tour already remounts this component via the route change, so
+nothing relied on the reactivity. Both omissions are commented in place.
+
+**Impact**: Confirmed fixed by rebuilding the actual `jamnagar-*`
+Docker image and re-running the same frame-by-frame reproduction: the
+opening scene now renders once and stays stable, with zero "Too many
+active WebGL contexts" warnings (previously 2-50+ depending on how long
+the page sat open). Added a regression test in
+`components/TourViewer.test.tsx` that asserts the viewer is not
+destroyed when `onSceneChange`'s identity changes between renders —
+verified it fails without the fix before confirming it passes with it.
+This bug shipped in every build made after the scene-deep-linking
+feature landed. `jamnagar-viewer.tar` and `jamnagar-version2.0.tar` both
+predate that feature and are unaffected; `jamnagar-latest.tar` (built
+2026-10-12) was the first deliverable built with it active, and is the
+one the client reported flickering on.
+
 ## 2026-09-22 — Smoke test script
 
 **What**: Added `scripts/smoke-test.mjs` (`npm run smoke`). Runs
