@@ -110,6 +110,7 @@ export function FloorPlan({ config, currentSceneId, onGoToScene }: Props) {
               />
               <Dots
                 markers={markers}
+                scenes={config.scenes}
                 currentSceneId={currentSceneId}
                 accentColor={accentColor}
                 dotScale={1}
@@ -127,6 +128,7 @@ export function FloorPlan({ config, currentSceneId, onGoToScene }: Props) {
 
 interface DotsProps {
   markers: FloorPlanConfig['markers'];
+  scenes?: TourConfig['scenes'];
   currentSceneId: string;
   accentColor: string;
   dotScale: number;
@@ -146,17 +148,20 @@ function dotStyle(size: number, isCurrent: boolean, accentColor: string, interac
   };
 }
 
-function Dots({ markers, currentSceneId, accentColor, dotScale, interactive, onDotClick, onNavigate }: DotsProps) {
+function Dots({ markers, scenes, currentSceneId, accentColor, dotScale, interactive, onDotClick, onNavigate }: DotsProps) {
+  const [hoveredSceneId, setHoveredSceneId] = useState<string | null>(null);
+
   return (
     <div className="pointer-events-none absolute inset-0">
       {markers.map((marker, i) => {
         const isCurrent = marker.sceneId === currentSceneId;
         const size = (marker.size ?? 20) * dotScale;
         const fontSize = Math.max(8, size * 0.55);
+        const sceneLabel = scenes?.find((s) => s.id === marker.sceneId)?.label;
         return (
           <div
             key={`${marker.sceneId}-${i}`}
-            className={interactive ? 'pointer-events-auto' : undefined}
+            className={interactive ? 'pointer-events-auto relative' : undefined}
             style={{
               position: 'absolute',
               left: `${marker.x}%`,
@@ -165,22 +170,38 @@ function Dots({ markers, currentSceneId, accentColor, dotScale, interactive, onD
             }}
           >
             {interactive ? (
-              <button
-                type="button"
-                onClick={() => {
-                  onDotClick?.(marker.sceneId);
-                  onNavigate?.();
-                }}
-                className="flex items-center justify-center rounded-full transition-transform hover:scale-110"
-                style={dotStyle(size, isCurrent, accentColor, true)}
-                aria-label={marker.label ? `Go to ${marker.label}` : `Go to scene`}
-              >
-                {marker.label && (
-                  <span className="select-none font-semibold leading-none" style={{ fontSize, color: isCurrent ? '#000' : '#fff' }}>
-                    {marker.label}
-                  </span>
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onDotClick?.(marker.sceneId);
+                    onNavigate?.();
+                  }}
+                  onMouseEnter={() => setHoveredSceneId(marker.sceneId)}
+                  onMouseLeave={() => setHoveredSceneId(null)}
+                  onFocus={() => setHoveredSceneId(marker.sceneId)}
+                  onBlur={() => setHoveredSceneId(null)}
+                  className="flex items-center justify-center rounded-full transition-transform hover:scale-110"
+                  style={dotStyle(size, isCurrent, accentColor, true)}
+                  aria-label={marker.label ? `Go to ${marker.label}` : `Go to scene`}
+                >
+                  {marker.label && (
+                    <span className="select-none font-semibold leading-none" style={{ fontSize, color: isCurrent ? '#000' : '#fff' }}>
+                      {marker.label}
+                    </span>
+                  )}
+                </button>
+                {sceneLabel && hoveredSceneId === marker.sceneId && (
+                  <div
+                    className="pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 whitespace-nowrap
+                      rounded-md bg-black/85 px-2.5 py-1 text-[11px] font-medium text-white/90
+                      shadow-lg ring-1 ring-white/10 backdrop-blur-sm"
+                    style={{ bottom: `calc(100% + ${Math.max(6, size * 0.3)}px)` }}
+                  >
+                    {sceneLabel}
+                  </div>
                 )}
-              </button>
+              </>
             ) : (
               <div
                 className="flex items-center justify-center rounded-full"
