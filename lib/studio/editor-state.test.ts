@@ -3,9 +3,13 @@ import {
   addFloorPlanMarker,
   addInfoMarker,
   addLink,
+  addZone,
+  assignSceneZone,
   removeFloorPlanMarker,
   removeInfoMarker,
   removeLink,
+  removeZone,
+  renameZone,
   setFloorPlan,
   setGuidedTour,
   setNadir,
@@ -254,4 +258,35 @@ test('removeFloorPlanMarker removes the marker at the given index', () => {
   );
   const next = removeFloorPlanMarker(withTwo, 0);
   expect(markersOf(next)).toEqual([{ sceneId: 'b', x: 30, y: 40, size: 20 }]);
+});
+
+test('addZone appends a zone immutably', () => {
+  const next = addZone(config, { id: 'z2', label: 'Zone 2' });
+  expect(next.zones).toEqual([{ id: 'z1', label: 'Zone 1' }, { id: 'z2', label: 'Zone 2' }]);
+  expect(config.zones).toHaveLength(1);
+});
+
+test('renameZone updates only the matching zone', () => {
+  const withSecond = addZone(config, { id: 'z2', label: 'Zone 2' });
+  const next = renameZone(withSecond, 'z2', 'Upstairs');
+  expect(next.zones).toEqual([{ id: 'z1', label: 'Zone 1' }, { id: 'z2', label: 'Upstairs' }]);
+});
+
+test('assignSceneZone moves a scene into a different zone', () => {
+  const withSecond = addZone(config, { id: 'z2', label: 'Zone 2' });
+  const next = assignSceneZone(withSecond, 'b', 'z2');
+  expect(next.scenes.find((s) => s.id === 'b')?.zone).toBe('z2');
+  expect(next.scenes.find((s) => s.id === 'a')?.zone).toBe('z1');
+});
+
+test('removeZone deletes an empty zone', () => {
+  const withSecond = addZone(config, { id: 'z2', label: 'Zone 2' });
+  const next = removeZone(withSecond, 'z2');
+  expect(next.zones).toEqual([{ id: 'z1', label: 'Zone 1' }]);
+});
+
+test('removeZone is a no-op when the zone still has scenes', () => {
+  const next = removeZone(config, 'z1');
+  expect(next).toBe(config);
+  expect(next.zones).toEqual([{ id: 'z1', label: 'Zone 1' }]);
 });

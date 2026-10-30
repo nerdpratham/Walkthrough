@@ -1,4 +1,4 @@
-import type { FloorPlanConfig, FloorPlanMarker, GuidedTourStep, InfoMarker, Link, Scene, TourConfig } from '@/lib/types';
+import type { FloorPlanConfig, FloorPlanMarker, GuidedTourStep, InfoMarker, Link, Scene, TourConfig, Zone } from '@/lib/types';
 
 export function updateScene(config: TourConfig, sceneId: string, patch: Partial<Scene>): TourConfig {
   return {
@@ -7,6 +7,32 @@ export function updateScene(config: TourConfig, sceneId: string, patch: Partial<
       scene.id === sceneId ? { ...scene, ...patch, id: scene.id } : scene
     )),
   };
+}
+
+export function addZone(config: TourConfig, zone: Zone): TourConfig {
+  return { ...config, zones: [...config.zones, zone] };
+}
+
+export function renameZone(config: TourConfig, zoneId: string, label: string): TourConfig {
+  return {
+    ...config,
+    zones: config.zones.map((zone) => (zone.id === zoneId ? { ...zone, label } : zone)),
+  };
+}
+
+/**
+ * Removes a zone. No-ops if any scene is still assigned to it -- RoomList
+ * only renders scenes whose zone matches a real zone id, so an orphaned
+ * scene would silently vanish from the public Rooms list rather than
+ * showing as "ungrouped" the way the Studio scene navigator does.
+ */
+export function removeZone(config: TourConfig, zoneId: string): TourConfig {
+  if (config.scenes.some((scene) => scene.zone === zoneId)) return config;
+  return { ...config, zones: config.zones.filter((zone) => zone.id !== zoneId) };
+}
+
+export function assignSceneZone(config: TourConfig, sceneId: string, zoneId: string): TourConfig {
+  return updateScene(config, sceneId, { zone: zoneId });
 }
 
 export function updateLink(

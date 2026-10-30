@@ -45,7 +45,7 @@ export function RoomList({ config, currentSceneId, onSelectScene }: RoomListProp
           <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 rounded-b-xl
             bg-gradient-to-t from-black/70 to-transparent z-10" />
           <div className="rounded-xl bg-black/70 p-3 backdrop-blur-md ring-1 ring-white/10
-            shadow-2xl max-h-[calc(100vh-6rem)] overflow-y-auto
+            shadow-2xl max-h-[calc(100vh-17rem)] overflow-y-auto
             [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {grouped.map(({ zone, scenes }) => (
             <div key={zone.id} className="mb-3 last:mb-0">

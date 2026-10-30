@@ -7,6 +7,7 @@ import { LinkInspector } from './LinkInspector';
 import { NadirInspector } from './NadirInspector';
 import { GuidedTourInspector } from './GuidedTourInspector';
 import { FloorPlanInspector } from './FloorPlanInspector';
+import { ZonesInspector } from './ZonesInspector';
 import { SceneInspector } from './SceneInspector';
 import { TransitionInspector } from './TransitionInspector';
 import { IncomingLinksPanel } from './IncomingLinksPanel';
@@ -165,6 +166,7 @@ export function InspectorPanel({
         <>
           <TransitionInspector config={config} onConfigChange={onConfigChange} />
           <NadirInspector slug={slug} config={config} onConfigChange={onConfigChange} />
+          <ZonesInspector config={config} onConfigChange={onConfigChange} />
           <GuidedTourInspector config={config} onConfigChange={onConfigChange} />
           <FloorPlanInspector slug={slug} config={config} activeSceneId={activeScene.id} onConfigChange={onConfigChange} />
         </>
